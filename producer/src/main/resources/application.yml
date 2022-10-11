@@ -7,3 +7,5 @@ spring:
     admin:
       properties:
         bootstrap.servers: localhost:29092,localhost:39092
+    template:
+      default-topic: library-events
