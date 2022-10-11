@@ -2,6 +2,7 @@ package com.example.producer.controller;
 
 import com.example.producer.config.LibraryEventProducer;
 import com.example.producer.domain.LibraryEvent;
+import com.example.producer.domain.LibraryEventType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ public class LibraryEventController {
     @ResponseStatus(HttpStatus.CREATED)
 
     public LibraryEvent postLibraryEvent(@RequestBody LibraryEvent libraryEvent) throws JsonProcessingException {
+        libraryEvent.setLibraryEventType(LibraryEventType.NEW);
         libraryEventProducer.sendLibraryEvent(libraryEvent);
         return libraryEvent;
     }
