@@ -22,7 +22,7 @@ public class LibraryEventProducer {
     public void sendLibraryEvent(LibraryEvent libraryEvent) throws JsonProcessingException {
         var key = libraryEvent.getId();
         var value = objectMapper.writeValueAsString(libraryEvent);
-        ListenableFuture<SendResult<Integer, String>> sendResultListenableFuture = kafkaTemplate.sendDefault(key, value);
+        var sendResultListenableFuture = kafkaTemplate.sendDefault(key, value);
         sendResultListenableFuture.addCallback(new ListenableFutureCallback<>() {
             @Override
             public void onFailure(@NonNull Throwable ex) {
