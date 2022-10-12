@@ -10,8 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.*;
 
 @WebMvcTest(controllers = LibraryEventController.class)
 class LibraryEventControllerTest {
@@ -24,8 +23,7 @@ class LibraryEventControllerTest {
     @Test
     void shouldReturnLibraryEventWithPost() throws JsonProcessingException {
 
-        doNothing().when(libraryEventProducer).sendLibraryEvent(any());
-
+        when(libraryEventProducer.sendLibraryEvent(any())).thenReturn(null);
         Book book = Book.builder()
                 .id(1)
                 .author("author")
