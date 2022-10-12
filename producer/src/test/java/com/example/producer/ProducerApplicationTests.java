@@ -67,7 +67,7 @@ class ProducerApplicationTests {
     }
 
     @Test
-    void shouldReturn400() {
+    void shouldReturn400ForPost() {
 
         var book = Book.builder()
                 .id(null)
