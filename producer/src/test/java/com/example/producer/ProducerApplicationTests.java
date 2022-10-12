@@ -69,4 +69,20 @@ class ProducerApplicationTests {
 
     }
 
+    @Test
+    void shouldReturn400() {
+        var request = LibraryEvent.builder()
+                .id(null)
+                .book(null)
+                .build();
+
+        webTestClient.post()
+                .uri("/v1/libraryevent")
+                .bodyValue(request)
+                .exchange()
+                .expectStatus()
+                .is4xxClientError();
+
+    }
+
 }
