@@ -51,7 +51,7 @@ class LibraryEventProducerTest {
     }
 
     @Test
-    void shouldCallSuccessMethod() throws JsonProcessingException, ExecutionException, InterruptedException {
+    void shouldCallOnSuccessMethod() throws JsonProcessingException, ExecutionException, InterruptedException {
         var book = Book.builder()
                 .id(1)
                 .author("author")
@@ -78,6 +78,27 @@ class LibraryEventProducerTest {
         verify(kafkaTemplate, times(1)).sendDefault(anyInt(), anyString());
         SendResult<Integer, String> sentResult = sendResultListenableFuture.get();
         Assertions.assertThat(sentResult.getRecordMetadata().partition()).isEqualTo(1);
+
+    }
+
+    @Test
+    void shouldCallOnFailureMethod() throws JsonProcessingException {
+        var book = Book.builder()
+                .id(1)
+                .author("author")
+                .name("name")
+                .build();
+        var libraryEvent = LibraryEvent.builder()
+                .id(1)
+                .book(book)
+                .build();
+        when(objectMapper.writeValueAsString(libraryEvent)).thenCallRealMethod();
+        var listenableFuture = new SettableListenableFuture<SendResult<Integer, String>>();
+        listenableFuture.setException(new RuntimeException("Kafka exception"));
+        when(kafkaTemplate.sendDefault(anyInt(), anyString())).thenReturn(listenableFuture);
+        var sendResultListenableFuture = libraryEventProducer.sendLibraryEvent(libraryEvent);
+        verify(kafkaTemplate, times(1)).sendDefault(anyInt(), anyString());
+        Assertions.assertThatThrownBy(sendResultListenableFuture::get).isInstanceOf(Exception.class);
 
     }
 }
