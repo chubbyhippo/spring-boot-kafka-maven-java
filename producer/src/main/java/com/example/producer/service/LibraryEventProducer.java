@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 @Service
@@ -18,7 +19,7 @@ public class LibraryEventProducer {
     private final KafkaTemplate<Integer, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    public void sendLibraryEvent(LibraryEvent libraryEvent) throws JsonProcessingException {
+    public ListenableFuture<SendResult<Integer, String>> sendLibraryEvent(LibraryEvent libraryEvent) throws JsonProcessingException {
         var key = libraryEvent.getId();
         var value = objectMapper.writeValueAsString(libraryEvent);
         var sendResultListenableFuture = kafkaTemplate.sendDefault(key, value);
@@ -35,11 +36,10 @@ public class LibraryEventProducer {
             }
 
         });
-
+        return sendResultListenableFuture;
     }
 
     private void handleFailure(Integer key, String value, Throwable ex) {
-
         log.error("Error sending the message for key : {}, and value is {},and the exception is {}", key, value,
                 ex.getMessage());
     }
