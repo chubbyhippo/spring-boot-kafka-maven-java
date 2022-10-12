@@ -42,4 +42,27 @@ class LibraryEventControllerTest {
                 .isCreated();
 
     }
+
+    @Test
+    void shouldReturnLibraryEventWithPut() throws JsonProcessingException {
+
+        when(libraryEventProducer.sendLibraryEvent(any())).thenReturn(null);
+        Book book = Book.builder()
+                .id(1)
+                .author("author")
+                .name("name")
+                .build();
+        LibraryEvent request = LibraryEvent.builder()
+                .id(1)
+                .book(book)
+                .build();
+
+        webTestClient.put()
+                .uri("/v1/libraryevent")
+                .bodyValue(request)
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+    }
 }
