@@ -1,5 +1,6 @@
 package com.example.producer.controller;
 
+import com.example.producer.exception.LibraryEventIdCannotBeNullException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -21,6 +22,12 @@ public class LibraryEventControllerAdvice {
                 .map(fieldError -> fieldError.getField() + " - " + fieldError.getDefaultMessage())
                 .sorted()
                 .collect(Collectors.joining(", "));
+    }
+
+    @ExceptionHandler(LibraryEventIdCannotBeNullException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleLibraryEventId(LibraryEventIdCannotBeNullException exception) {
+        return exception.getMessage();
     }
 
 }
