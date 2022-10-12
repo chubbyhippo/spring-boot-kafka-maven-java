@@ -1,4 +1,4 @@
-package com.example.producer.config;
+package com.example.producer.service;
 
 import com.example.producer.domain.LibraryEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -8,10 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-@Component
+@Service
 @Slf4j
 @RequiredArgsConstructor
 public class LibraryEventProducer {

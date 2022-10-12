@@ -1,6 +1,6 @@
 package com.example.producer.controller;
 
-import com.example.producer.config.LibraryEventProducer;
+import com.example.producer.service.LibraryEventProducer;
 import com.example.producer.domain.LibraryEvent;
 import com.example.producer.domain.LibraryEventType;
 import com.fasterxml.jackson.core.JsonProcessingException;
