@@ -21,7 +21,7 @@ class LibraryEventProducerTest {
 
     @Mock
     private KafkaTemplate<Integer, String> kafkaTemplate;
-    @Mock
+    @Spy
     private ObjectMapper objectMapper;
     @InjectMocks
     private LibraryEventProducer libraryEventProducer;
@@ -38,7 +38,7 @@ class LibraryEventProducerTest {
                 .book(book)
                 .build();
         var listenableFuture = new SettableListenableFuture<SendResult<Integer, String>>();
-        when(objectMapper.writeValueAsString(libraryEvent)).thenReturn("libraryEvent's string");
+        when(objectMapper.writeValueAsString(libraryEvent)).thenCallRealMethod();
         when(kafkaTemplate.sendDefault(anyInt(), anyString())).thenReturn(listenableFuture);
         libraryEventProducer.sendLibraryEvent(libraryEvent);
         verify(kafkaTemplate, times(1)).sendDefault(anyInt(), anyString());
