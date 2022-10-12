@@ -22,7 +22,7 @@ class LibraryEventControllerTest {
     private LibraryEventProducer libraryEventProducer;
 
     @Test
-    void shouldReturnLibraryEvent() throws JsonProcessingException {
+    void shouldReturnLibraryEventWithPost() throws JsonProcessingException {
 
         doNothing().when(libraryEventProducer).sendLibraryEvent(any());
 
