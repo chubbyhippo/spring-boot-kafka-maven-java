@@ -68,9 +68,15 @@ class ProducerApplicationTests {
 
     @Test
     void shouldReturn400() {
+
+        var book = Book.builder()
+                .id(null)
+                .author(null)
+                .name("name")
+                .build();
         var request = LibraryEvent.builder()
                 .id(null)
-                .book(null)
+                .book(book)
                 .build();
 
         webTestClient.post()
@@ -78,7 +84,9 @@ class ProducerApplicationTests {
                 .bodyValue(request)
                 .exchange()
                 .expectStatus()
-                .is4xxClientError();
+                .is4xxClientError()
+                .expectBody(String.class)
+                .isEqualTo("book.author - must not be blank, book.id - must not be null");
 
     }
 
