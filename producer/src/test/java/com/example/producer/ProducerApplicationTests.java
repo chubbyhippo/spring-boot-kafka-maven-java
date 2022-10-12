@@ -90,4 +90,28 @@ class ProducerApplicationTests {
 
     }
 
+    @Test
+    void shouldReturn400ForPut() {
+
+        var book = Book.builder()
+                .id(1)
+                .author("author")
+                .name("name")
+                .build();
+        var request = LibraryEvent.builder()
+                .id(null)
+                .book(book)
+                .build();
+
+        webTestClient.put()
+                .uri("/v1/libraryevent")
+                .bodyValue(request)
+                .exchange()
+                .expectStatus()
+                .is4xxClientError()
+                .expectBody(String.class)
+                .isEqualTo("LibraryEvent id cannot be null");
+
+    }
+
 }
