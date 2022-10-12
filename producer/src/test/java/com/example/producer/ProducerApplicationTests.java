@@ -3,7 +3,6 @@ package com.example.producer;
 import com.example.producer.domain.Book;
 import com.example.producer.domain.LibraryEvent;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterEach;
@@ -17,8 +16,6 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
