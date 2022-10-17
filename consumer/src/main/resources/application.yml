@@ -7,3 +7,5 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.IntegerDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       group-id: library-events-listener-group
+  datasource:
+    url: jdbc:h2:mem:testdb
