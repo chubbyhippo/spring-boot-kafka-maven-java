@@ -21,11 +21,13 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka(topics = {"library-events"})
@@ -67,38 +69,19 @@ class ConsumerApplicationTests {
                    	}
                    }
                 """;
-//        kafkaTemplate.sendDefault(json).completable().thenRun(() -> {
-//            try {
-//                Thread.sleep(3000L);
-//            } catch (InterruptedException e) {
-//                throw new RuntimeException(e);
-//            }
-//
-//
-//            try {
-//                verify(libraryEventsConsumer, times(1)).onMessage(any(ConsumerRecord.class));
-//                verify(libraryEventService, times(1)).processLibraryEvent(any(ConsumerRecord.class));
-//
-//                Assertions.assertThat(libraryEventRepository.findAll()).isNotEmpty();
-//
-//            } catch (JsonProcessingException e) {
-//                throw new RuntimeException(e);
-//            }
-//
-//        }).get();
-//        kafkaTemplate.sendDefault(json);
-//        Awaitility.await().atLeast(3, TimeUnit.SECONDS).until(
-//                () -> kafkaTemplate.sendDefault(json)
-//        );
-//        Awaitility.waitAtMost(5, TimeUnit.SECONDS).until();
-//
+
         kafkaTemplate.sendDefault(json).get();
-        var countDownLatch = new CountDownLatch(1);
-        countDownLatch.await(3, TimeUnit.SECONDS);
+        Awaitility.await().atMost(5, TimeUnit.SECONDS)
+                .until(() ->
+                        libraryEventRepository.findAll().size(), greaterThan(0)
+
+                );
+
         verify(libraryEventsConsumer, times(1)).onMessage(any(ConsumerRecord.class));
         verify(libraryEventService, times(1)).processLibraryEvent(any(ConsumerRecord.class));
         Assertions.assertThat(libraryEventRepository.findAll()).isNotEmpty();
-        Assertions.assertThat(libraryEventRepository.findAll().get(0).getLibraryEventType()).isEqualTo(LibraryEventType.UPDATE);
+        Assertions.assertThat(libraryEventRepository.findAll().get(0).getLibraryEventType())
+                .isEqualTo(LibraryEventType.NEW);
 
 
     }
