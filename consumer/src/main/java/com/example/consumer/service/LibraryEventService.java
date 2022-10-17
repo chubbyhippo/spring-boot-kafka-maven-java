@@ -24,9 +24,21 @@ public class LibraryEventService {
             case NEW -> save(libraryEvent);
 
             case UPDATE -> {
+                validate(libraryEvent);
+                save(libraryEvent);
             }
             default -> log.info("Invalid Library Event Type");
         }
+    }
+
+    private void validate(LibraryEvent libraryEvent) {
+        if (libraryEvent.getId() == null) {
+            throw new IllegalArgumentException("Library Event Id is missing");
+        }
+        if (libraryEventRepository.findById(libraryEvent.getId()).isEmpty()) {
+            throw new IllegalArgumentException("Not a valid library Event");
+        }
+        log.info("Validation is successful for the library event : {}", libraryEvent);
     }
 
     private void save(LibraryEvent libraryEvent) {
