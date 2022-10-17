@@ -1,21 +1,29 @@
 package com.example.consumer.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
+@Entity
 public class LibraryEvent {
+
+    @Id
+    @GeneratedValue
     private Integer id;
+    @Enumerated(EnumType.STRING)
     private LibraryEventType libraryEventType;
     @NotNull
     @Valid
+    @OneToOne(mappedBy = "libraryEvent", cascade = {CascadeType.ALL})
+    @ToString.Exclude
     private Book book;
+
 }
