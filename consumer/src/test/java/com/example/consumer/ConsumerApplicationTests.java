@@ -5,11 +5,11 @@ import com.example.consumer.repository.LibraryEventRepository;
 import com.example.consumer.service.LibraryEventService;
 import com.example.consumer.service.LibraryEventsConsumer;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.assertj.core.api.Assertions;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -33,7 +33,6 @@ import static org.mockito.Mockito.verify;
 @EmbeddedKafka(topics = {"library-events"})
 @TestPropertySource(properties = {"spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}"})
-//@ContextConfiguration(classes = {KafkaListenerEndpointRegistry.class, EmbeddedKafkaBroker.class})
 class ConsumerApplicationTests {
 
     @Autowired
@@ -77,12 +76,9 @@ class ConsumerApplicationTests {
 
                 );
 
-        verify(libraryEventsConsumer, times(1)).onMessage(any(ConsumerRecord.class));
-        verify(libraryEventService, times(1)).processLibraryEvent(any(ConsumerRecord.class));
+        verify(libraryEventsConsumer, times(1)).onMessage(ArgumentMatchers.any());
+        verify(libraryEventService, times(1)).processLibraryEvent(any());
         Assertions.assertThat(libraryEventRepository.findAll()).isNotEmpty();
-        Assertions.assertThat(libraryEventRepository.findAll().get(0).getLibraryEventType())
-                .isEqualTo(LibraryEventType.NEW);
-
-
+        Assertions.assertThat(libraryEventRepository.findAll().get(0).getLibraryEventType()).isEqualTo(LibraryEventType.NEW);
     }
 }
