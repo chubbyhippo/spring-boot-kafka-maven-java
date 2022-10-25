@@ -21,9 +21,12 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.awaitility.Awaitility.*;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -70,7 +73,7 @@ class ConsumerApplicationTests {
                 """;
 
         kafkaTemplate.sendDefault(json).get();
-        Awaitility.await().atMost(5, TimeUnit.SECONDS)
+        await().atMost(5, TimeUnit.SECONDS)
                 .until(() ->
                         libraryEventRepository.findAll().size(), greaterThan(0)
 
@@ -78,7 +81,32 @@ class ConsumerApplicationTests {
 
         verify(libraryEventsConsumer, times(1)).onMessage(ArgumentMatchers.any());
         verify(libraryEventService, times(1)).processLibraryEvent(any());
-        Assertions.assertThat(libraryEventRepository.findAll()).isNotEmpty();
-        Assertions.assertThat(libraryEventRepository.findAll().get(0).getLibraryEventType()).isEqualTo(LibraryEventType.NEW);
+        assertThat(libraryEventRepository.findAll()).isNotEmpty();
+        assertThat(libraryEventRepository.findAll().get(0).getLibraryEventType()).isEqualTo(LibraryEventType.NEW);
+    }
+
+    @Test
+    void shouldShowErrorPublishNewLibraryEvent() throws ExecutionException, InterruptedException, JsonProcessingException {
+        var json = """
+                    {
+                    	"id": null,
+                    	"libraryEventType": "UPDATE",
+                    	"book": {
+                    		"id": 123,
+                    		"name": "DDD",
+                    		"author": "Eric"
+                    	}
+                    }
+                """;
+
+        kafkaTemplate.sendDefault(json).get();
+        await().atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> verify(libraryEventService, times(10))
+                        .processLibraryEvent(any()));
+
+        await().atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> verify(libraryEventsConsumer, times(10))
+                        .onMessage(any()));
+
     }
 }
