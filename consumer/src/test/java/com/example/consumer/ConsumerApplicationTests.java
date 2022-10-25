@@ -83,7 +83,7 @@ class ConsumerApplicationTests {
     }
 
     @Test
-    void shouldShowErrorPublishNewLibraryEvent() throws ExecutionException, InterruptedException, JsonProcessingException {
+    void shouldShowErrorPublishNewLibraryEvent() throws ExecutionException, InterruptedException {
         var json = """
                     {
                     	"id": null,
