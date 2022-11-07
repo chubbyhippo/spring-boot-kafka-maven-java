@@ -1,5 +1,6 @@
 package com.example.consumer.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -8,11 +9,12 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
 @Configuration
+@RequiredArgsConstructor
 public class KafkaConfig {
-
+    private final ConsumerFactory<Integer, String> consumerFactory;
     @Bean
     public ConcurrentKafkaListenerContainerFactory<Integer, String>
-    kafkaListenerContainerFactory(ConsumerFactory<Integer, String> consumerFactory) {
+    kafkaListenerContainerFactory() {
         var factory = new ConcurrentKafkaListenerContainerFactory<Integer, String>();
         factory.setConsumerFactory(consumerFactory);
         factory.setCommonErrorHandler(customError());
