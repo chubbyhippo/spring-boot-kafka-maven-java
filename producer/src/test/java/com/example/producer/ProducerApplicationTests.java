@@ -23,15 +23,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EmbeddedKafka(topics = {"library-events"})
 @TestPropertySource(properties = {"spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "spring.kafka.admin.properties.bootstrap.servers=${spring.embedded.kafka.brokers}"})
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class ProducerApplicationTests {
 
     @Autowired
     private WebTestClient webTestClient;
 
     private Consumer<Integer, String> consumer;
+    @Autowired
+    private EmbeddedKafkaBroker embeddedKafkaBroker;
 
     @BeforeEach
-    void setUp(@Autowired EmbeddedKafkaBroker embeddedKafkaBroker) {
+    void setUp() {
         var configs = KafkaTestUtils.consumerProps("group1", "true", embeddedKafkaBroker);
         consumer = new DefaultKafkaConsumerFactory<>(configs, new IntegerDeserializer(), new StringDeserializer()).createConsumer();
         embeddedKafkaBroker.consumeFromAllEmbeddedTopics(consumer);
