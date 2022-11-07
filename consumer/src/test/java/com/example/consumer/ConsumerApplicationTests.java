@@ -33,6 +33,7 @@ import static org.mockito.Mockito.verify;
 @EmbeddedKafka(topics = {"library-events"})
 @TestPropertySource(properties = {"spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}"})
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class ConsumerApplicationTests {
 
     @Autowired
