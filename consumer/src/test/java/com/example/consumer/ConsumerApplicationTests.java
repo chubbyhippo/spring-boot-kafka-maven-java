@@ -107,4 +107,29 @@ class ConsumerApplicationTests {
                         .onMessage(any()));
 
     }
+
+    @Test
+    void shouldShowErrorPublishUpdateLibraryEventId999() throws ExecutionException, InterruptedException {
+        var json = """
+                    {
+                    	"id": 999,
+                    	"libraryEventType": "UPDATE",
+                    	"book": {
+                    		"id": 123,
+                    		"name": "DDD",
+                    		"author": "Eric"
+                    	}
+                    }
+                """;
+
+        kafkaTemplate.sendDefault(json).get();
+        await().atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> verify(libraryEventService, times(3))
+                        .processLibraryEvent(any()));
+
+        await().atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> verify(libraryEventsConsumer, times(3))
+                        .onMessage(any()));
+
+    }
 }
