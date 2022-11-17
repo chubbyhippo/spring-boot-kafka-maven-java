@@ -99,11 +99,11 @@ class ConsumerApplicationTests {
 
         kafkaTemplate.sendDefault(json).get();
         await().atMost(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> verify(libraryEventService, times(3))
+                .untilAsserted(() -> verify(libraryEventService, times(1))
                         .processLibraryEvent(any()));
 
         await().atMost(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> verify(libraryEventsConsumer, times(3))
+                .untilAsserted(() -> verify(libraryEventsConsumer, times(1))
                         .onMessage(any()));
 
     }
