@@ -9,6 +9,8 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.List;
+
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +30,10 @@ public class KafkaConfig {
     public DefaultErrorHandler customError() {
         var fixedBackOff = new FixedBackOff(1000L, 2L);
         var errorHandler = new DefaultErrorHandler(fixedBackOff);
+
+        var toIgnoreExceptions = List.of(IllegalArgumentException.class);
+
+        toIgnoreExceptions.forEach(errorHandler::addNotRetryableExceptions);
         errorHandler.setRetryListeners((consumerRecord, e, i)
                 -> log.info("Failed record in Retry Listener, Exception : {} , deliveryAttempt : {} ",
                 e.getMessage(), i));
