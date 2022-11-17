@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -32,8 +33,11 @@ public class KafkaConfig {
         var errorHandler = new DefaultErrorHandler(fixedBackOff);
 
         var toIgnoreExceptions = List.of(IllegalArgumentException.class);
-
         toIgnoreExceptions.forEach(errorHandler::addNotRetryableExceptions);
+
+        var toRetryExceptions = List.of(RecoverableDataAccessException.class);
+        toRetryExceptions.forEach(errorHandler::addRetryableExceptions);
+
         errorHandler.setRetryListeners((consumerRecord, e, i)
                 -> log.info("Failed record in Retry Listener, Exception : {} , deliveryAttempt : {} ",
                 e.getMessage(), i));
