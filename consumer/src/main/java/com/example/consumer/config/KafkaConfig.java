@@ -8,6 +8,8 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
+import org.springframework.util.backoff.ExponentialBackOff;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.List;
@@ -29,8 +31,16 @@ public class KafkaConfig {
 
 
     public DefaultErrorHandler customError() {
-        var fixedBackOff = new FixedBackOff(1000L, 2L);
-        var errorHandler = new DefaultErrorHandler(fixedBackOff);
+//        var fixedBackOff = new FixedBackOff(1000L, 2L);
+        var exponentialBackOffWithMaxRetries = new ExponentialBackOffWithMaxRetries(2);
+        exponentialBackOffWithMaxRetries.setInitialInterval(1_000L);
+        exponentialBackOffWithMaxRetries.setMultiplier(2.0);
+        exponentialBackOffWithMaxRetries.setMaxInterval(2_000);
+
+        var errorHandler = new DefaultErrorHandler(
+//                fixedBackOff
+                exponentialBackOffWithMaxRetries
+        );
 
         var toIgnoreExceptions = List.of(IllegalArgumentException.class);
         toIgnoreExceptions.forEach(errorHandler::addNotRetryableExceptions);
