@@ -65,7 +65,8 @@ class ConsumerApplicationTests {
 
     @BeforeEach
     void setUp() {
-        for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry.getListenerContainers()) {
+        for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
+                .getListenerContainers()) {
             ContainerTestUtils.waitForAssignment(messageListenerContainer, embeddedKafkaBroker.getPartitionsPerTopic());
         }
     }
