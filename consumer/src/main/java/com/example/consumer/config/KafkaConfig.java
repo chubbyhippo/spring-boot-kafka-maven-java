@@ -2,15 +2,17 @@ package com.example.consumer.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.TopicPartition;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
-import org.springframework.util.backoff.ExponentialBackOff;
-import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.List;
 
@@ -19,6 +21,23 @@ import java.util.List;
 @Slf4j
 public class KafkaConfig {
     private final ConsumerFactory<Integer, String> consumerFactory;
+    private final KafkaTemplate<Integer, String> kafkaTemplate;
+
+    @Value("${topics.retry}")
+    private String retryTopic;
+    @Value("${topics.dlt}")
+    private String deadLetterTopic;
+
+    public DeadLetterPublishingRecoverer publishingRecoverer() {
+        return new DeadLetterPublishingRecoverer(kafkaTemplate,
+                (r, e) -> {
+                    if (e.getCause() instanceof RecoverableDataAccessException) {
+                        return new TopicPartition(retryTopic, r.partition());
+                    } else {
+                        return new TopicPartition(deadLetterTopic, r.partition());
+                    }
+                });
+    }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<Integer, String>
@@ -38,6 +57,7 @@ public class KafkaConfig {
         exponentialBackOffWithMaxRetries.setMaxInterval(2_000);
 
         var errorHandler = new DefaultErrorHandler(
+                publishingRecoverer(),
 //                fixedBackOff
                 exponentialBackOffWithMaxRetries
         );
