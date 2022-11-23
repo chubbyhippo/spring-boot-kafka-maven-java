@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 public class LibraryEventsRetryConsumer {
     private final LibraryEventService libraryEventService;
 
-    @KafkaListener(topics = {"${topics.retry}"}, groupId = "retry-listener-group")
+    @KafkaListener(topics = {"${topics.retry}"},
+            groupId = "retry-listener-group",
+            autoStartup = "${retryListener.startup:true}")
     public void onMessage(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
         log.info("ConsumerRecord in Retry consumer: {} ", consumerRecord);
         consumerRecord.headers()
