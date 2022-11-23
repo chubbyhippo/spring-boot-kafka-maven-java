@@ -26,6 +26,7 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -39,7 +40,8 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka(topics = {"library-events", "library-events.RETRY", "library-events.DLT"})
 @TestPropertySource(properties = {"spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
-        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}"})
+        "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "retryListener.startup=false"})
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class ConsumerApplicationTests {
 
@@ -65,10 +67,13 @@ class ConsumerApplicationTests {
 
     @BeforeEach
     void setUp() {
-        for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
-                .getListenerContainers()) {
-            ContainerTestUtils.waitForAssignment(messageListenerContainer, embeddedKafkaBroker.getPartitionsPerTopic());
-        }
+
+        kafkaListenerEndpointRegistry.getListenerContainers()
+                .stream()
+                .filter(messageListenerContainer ->
+                        Objects.equals(messageListenerContainer.getGroupId(), "library-events-listener-group"))
+                .forEach(messageListenerContainer -> ContainerTestUtils.waitForAssignment(messageListenerContainer,
+                        embeddedKafkaBroker.getPartitionsPerTopic()));
     }
 
     @Test
@@ -141,10 +146,6 @@ class ConsumerApplicationTests {
         await().pollDelay(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> verify(libraryEventService, times(3))
                         .processLibraryEvent(any()));
-
-//        await().atMost(5, TimeUnit.SECONDS)
-//                .untilAsserted(() -> verify(libraryEventService, times(3))
-//                        .processLibraryEvent(any()));
 
         await().atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> verify(libraryEventsConsumer, times(3))
