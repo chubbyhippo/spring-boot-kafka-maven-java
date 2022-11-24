@@ -18,7 +18,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
@@ -41,7 +40,7 @@ import static org.mockito.Mockito.verify;
 @EmbeddedKafka(topics = {"library-events", "library-events.RETRY", "library-events.DLT"})
 @TestPropertySource(properties = {"spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}",
-        "retryListener.startup=false"})
+        "retry-listener.startup=false"})
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class ConsumerApplicationTests {
 
