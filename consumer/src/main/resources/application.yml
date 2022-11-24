@@ -18,3 +18,5 @@ spring:
 topics:
   retry: "library-events.RETRY"
   dlt: "library-events.DLT"
+retry-listener:
+  startup: true
