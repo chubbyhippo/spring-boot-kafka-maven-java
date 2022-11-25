@@ -1,6 +1,7 @@
 package com.example.consumer;
 
 import com.example.consumer.entity.LibraryEventType;
+import com.example.consumer.repository.FailureRecordRepository;
 import com.example.consumer.repository.LibraryEventRepository;
 import com.example.consumer.service.LibraryEventService;
 import com.example.consumer.service.LibraryEventsConsumer;
@@ -56,6 +57,8 @@ class ConsumerApplicationTests {
     private EmbeddedKafkaBroker embeddedKafkaBroker;
     @Autowired
     private LibraryEventRepository libraryEventRepository;
+    @Autowired
+    private FailureRecordRepository failureRecordRepository;
 
     private Consumer<Integer, String> consumer;
     @Value("${topics.retry}")
@@ -126,9 +129,42 @@ class ConsumerApplicationTests {
                         .onMessage(any()));
 
     }
-
     @Test
-    void shouldShowErrorPublishUpdateLibraryEventId999() throws ExecutionException, InterruptedException {
+    void shouldShowErrorPublishUpdateSaveFailureRecordLibraryEvent() throws ExecutionException, InterruptedException {
+        var json = """
+                    {
+                    	"id": null,
+                    	"libraryEventType": "UPDATE",
+                    	"book": {
+                    		"id": 123,
+                    		"name": "DDD",
+                    		"author": "Eric"
+                    	}
+                    }
+                """;
+
+        kafkaTemplate.sendDefault(json).get();
+
+        await().atMost(5, TimeUnit.SECONDS)
+                .until(() ->
+                        failureRecordRepository.findAll().size(), greaterThan(0)
+
+                );
+
+
+        await().pollDelay(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> verify(libraryEventService, times(1))
+                        .processLibraryEvent(any()));
+
+        await().pollDelay(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> verify(libraryEventsConsumer, times(1))
+                        .onMessage(any()));
+
+
+
+    }
+    @Test
+    void shouldShowErrorPublishRetryTopicUpdateLibraryEventId999() throws ExecutionException, InterruptedException {
         var json = """
                     {
                     	"id": 999,
