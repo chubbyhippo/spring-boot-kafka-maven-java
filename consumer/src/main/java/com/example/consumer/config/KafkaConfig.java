@@ -1,5 +1,6 @@
 package com.example.consumer.config;
 
+import com.example.consumer.service.FailureRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
@@ -10,6 +11,7 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
@@ -22,22 +24,12 @@ import java.util.List;
 public class KafkaConfig {
     private final ConsumerFactory<Integer, String> consumerFactory;
     private final KafkaTemplate<Integer, String> kafkaTemplate;
-
+    private final FailureRecordService failureRecordService;
     @Value("${topics.retry}")
     private String retryTopic;
     @Value("${topics.dlt}")
     private String deadLetterTopic;
 
-    public DeadLetterPublishingRecoverer publishingRecoverer() {
-        return new DeadLetterPublishingRecoverer(kafkaTemplate,
-                (r, e) -> {
-                    if (e.getCause() instanceof RecoverableDataAccessException) {
-                        return new TopicPartition(retryTopic, r.partition());
-                    } else {
-                        return new TopicPartition(deadLetterTopic, r.partition());
-                    }
-                });
-    }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<Integer, String>
@@ -57,20 +49,44 @@ public class KafkaConfig {
         exponentialBackOffWithMaxRetries.setMaxInterval(2_000);
 
         var errorHandler = new DefaultErrorHandler(
-                publishingRecoverer(),
+//                publishingRecoverer(),
 //                fixedBackOff
+                consumerRecordRecoverer(),
                 exponentialBackOffWithMaxRetries
         );
 
         var toIgnoreExceptions = List.of(IllegalArgumentException.class);
         toIgnoreExceptions.forEach(errorHandler::addNotRetryableExceptions);
 
-        var toRetryExceptions = List.of(RecoverableDataAccessException.class);
-        toRetryExceptions.forEach(errorHandler::addRetryableExceptions);
+//        var toRetryExceptions = List.of(RecoverableDataAccessException.class);
+//        toRetryExceptions.forEach(errorHandler::addRetryableExceptions);
 
         errorHandler.setRetryListeners((consumerRecord, e, i)
                 -> log.info("Failed record in Retry Listener, Exception : {} , deliveryAttempt : {} ",
                 e.getMessage(), i));
         return errorHandler;
     }
+
+    public DeadLetterPublishingRecoverer publishingRecoverer() {
+        return new DeadLetterPublishingRecoverer(kafkaTemplate,
+                (r, e) -> {
+                    if (e.getCause() instanceof RecoverableDataAccessException) {
+                        return new TopicPartition(retryTopic, r.partition());
+                    } else {
+                        return new TopicPartition(deadLetterTopic, r.partition());
+                    }
+                }
+        );
+    }
+
+    private ConsumerRecordRecoverer consumerRecordRecoverer() {
+        return (consumerRecord, e) -> {
+            if (e.getCause() instanceof RecoverableDataAccessException) {
+                failureRecordService.saveFailedRecord(consumerRecord, e, RecordStatus.RETRY);
+            } else {
+                failureRecordService.saveFailedRecord(consumerRecord, e, RecordStatus.DEAD);
+            }
+        };
+    }
+
 }
