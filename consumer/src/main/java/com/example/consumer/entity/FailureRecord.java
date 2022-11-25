@@ -1,9 +1,8 @@
 package com.example.consumer.entity;
 
 import com.example.consumer.config.RecordStatus;
+import jakarta.persistence.*;
 import lombok.*;
-
-import javax.persistence.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
