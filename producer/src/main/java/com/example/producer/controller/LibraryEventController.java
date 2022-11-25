@@ -5,12 +5,12 @@ import com.example.producer.domain.LibraryEventType;
 import com.example.producer.exception.LibraryEventIdCannotBeNullException;
 import com.example.producer.service.LibraryEventProducer;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 
 @Controller
 @ResponseBody
