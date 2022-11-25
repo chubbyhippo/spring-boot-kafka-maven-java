@@ -3,14 +3,13 @@ package com.example.producer.service;
 import com.example.producer.domain.LibraryEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
+
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -19,24 +18,23 @@ public class LibraryEventProducer {
     private final KafkaTemplate<Integer, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
-    public ListenableFuture<SendResult<Integer, String>> sendLibraryEvent(LibraryEvent libraryEvent) throws JsonProcessingException {
+    public CompletableFuture<SendResult<Integer, String>> sendLibraryEvent(LibraryEvent libraryEvent) throws JsonProcessingException {
         var key = libraryEvent.getId();
         var value = objectMapper.writeValueAsString(libraryEvent);
-        var sendResultListenableFuture = kafkaTemplate.sendDefault(key, value);
-        sendResultListenableFuture.addCallback(new ListenableFutureCallback<>() {
-            @Override
-            public void onFailure(@NonNull Throwable ex) {
-                handleFailure(key, value, ex);
+        var sendResultCompletableFuture = kafkaTemplate.sendDefault(key, value);
+        sendResultCompletableFuture.thenAccept(integerStringSendResult -> handleSuccess(key,
+                        value,
+                        integerStringSendResult))
+                .exceptionally(throwable -> {
+                    handleFailure(key, value, throwable);
+                    try {
+                        throw throwable;
+                    } catch (Throwable e) {
+                        throw new RuntimeException(e);
+                    }
+                });
 
-            }
-
-            @Override
-            public void onSuccess(SendResult<Integer, String> result) {
-                handleSuccess(key, value, result);
-            }
-
-        });
-        return sendResultListenableFuture;
+        return sendResultCompletableFuture;
     }
 
     private void handleFailure(Integer key, String value, Throwable ex) {
